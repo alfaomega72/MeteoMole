@@ -1,40 +1,37 @@
-name: Build Android APK
+name: Flutter Android CI
 
-on:
+on: 
   push:
     branches:
-      - main
-  workflow_dispatch:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
+          distribution: 'zulu'
           java-version: '17'
-          distribution: 'temurin'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - uses: subosito/flutter-action@v2
         with:
-          packages: |
-            build-tools;34.0.0
-            platforms;android-34
+          flutter-version: '3.x'
+          channel: 'stable'
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Install dependencies
+        run: flutter pub get
 
-      - name: Build with Gradle
-        run: ./gradlew assembleRelease
+      - name: Build Android APK
+        run: flutter build apk --release
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: app-release
-          path: app/build/outputs/apk/release/app-release.apk
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
